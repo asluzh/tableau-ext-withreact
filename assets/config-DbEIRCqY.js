@@ -1,0 +1,1 @@
+import{j as t,c as e,R as n}from"./tableau.extensions.1.latest.min-43Rv9ciE.js";function r(){return t.jsx(t.Fragment,{children:t.jsx("div",{children:"Settings"})})}e.createRoot(document.getElementById("root")).render(t.jsx(n.StrictMode,{children:t.jsx(r,{})}));
