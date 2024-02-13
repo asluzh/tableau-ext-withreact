@@ -5,10 +5,11 @@
 //   TableauEvent,
 //   Worksheet
 // } from '@tableau/extensions-api-types';
-import '../assets/tableau.extensions.1.latest.min.js'
+import '../../public/lib/tableau.extensions.1.latest.min.js?raw'
+
+console.log(tableau);
 
 export default function App() {
-  // console.log(tableau);
   return (
     <>
       <div>Extension</div>

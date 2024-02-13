@@ -4,7 +4,7 @@
 //   TableauEvent,
 //   Worksheet
 // } from '@tableau/extensions-api-types';
-import '../assets/tableau.extensions.1.latest.min.js';
+import '../../public/lib/tableau.extensions.1.latest.min.js?raw'
 
 export default function Settings() {
   // console.log(tableau);
