@@ -13,14 +13,31 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    // "allowJs": true,
+    // "importHelpers": true,
 
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "typeRoots" : ["./node_modules/@types", "./node_modules/@tableau"]
+    "typeRoots" : ["./node_modules/@types", "./node_modules/@tableau"],
+    // "types": ["node", "@tableau/extensions-api-types"],
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    // "baseUrl": "./",
+    // "outDir": "./dist/",
+    // "module": "es6",
+    // "target": "es6",
+    // "lib": ["es6", "dom", "dom.iterable"],
+    // "sourceMap": true,
+    // "rootDir": ".",
+    // "forceConsistentCasingInFileNames": true,
+    // "esModuleInterop": true,
+    // "allowSyntheticDefaultImports": true,
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  // "exclude": ["node_modules"],
 }
