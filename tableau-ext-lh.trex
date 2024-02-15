@@ -3,7 +3,7 @@
   <dashboard-extension id="com.github.asluzh.tableau-ext-withreact" extension-version="0.0.1">
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
-    <description>Tableau Extension Template React</description>
+    <description>Tableau Extension Template React Typescript</description>
     <author name="Andrey Sluzhivoy" email="andrey.sluzhivoy@d-one.ai" organization="D ONE" website="https://github.com/asluzh"/>
     <min-api-version>1.10</min-api-version>
     <source-location>
@@ -16,7 +16,7 @@
   </dashboard-extension>
   <resources>
     <resource id="name">
-      <text locale="en_US">Tableau Extension Template (React + Vite)</text>
+      <text locale="en_US">Tableau Extension Template (React + Typescript + Vite)</text>
     </resource>
   </resources>
 </manifest>
