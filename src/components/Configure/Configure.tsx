@@ -7,8 +7,6 @@ import { defaultSettings } from "../../interfaces";
 // import { saveSettings, setSettings, initializeMeta, revalidateMeta } from '../func/func';
 // import './Configure.css';
 
-// import '../../public/lib/tableau.extensions.1.latest.min.js?raw'
-
 // Declare this so our linter knows that tableau is a global object
 /* global tableau */
 
@@ -20,9 +18,10 @@ export default function Configure() {
   const [buttonStyle, setButtonStyle] = useState(defaultSettings.buttonStyle);
 
   useEffect(() => {
-    console.log("[Configure.tsx] useEffect initialize");
-    tableau.extensions.initializeDialogAsync().then((openPayload) => {
-      console.log("[Configure.tsx] Initialise Dialog", openPayload);
+    (async () => {
+      console.log("[Configure.tsx] useEffect initialize dialog");
+      const payload = await tableau.extensions.initializeDialogAsync();
+      console.log("[Configure.tsx] Initialise Dialog", payload);
 
       const labelSettings = tableau.extensions.settings.get("buttonLabel");
       if (labelSettings !== undefined) {
@@ -42,11 +41,15 @@ export default function Configure() {
         );
         setButtonStyle(styleSettings);
       }
-    });
+    })();
+    return () => {
+      // Component unmount code
+      console.log("[Configure.tsx] useEffect callback");
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function saveSettingsHandler(close: boolean) {
+  async function saveSettingsHandler(close: boolean) {
     console.log("[Configure.tsx] saveSettingsHandler");
     console.log("[Configure.tsx] Authoring mode:", tableau.extensions.environment.mode);
     if (tableau.extensions.environment.mode === "authoring") {
@@ -54,19 +57,17 @@ export default function Configure() {
       tableau.extensions.settings.set("metaVersion", defaultSettings.metaVersion!.toString());
       tableau.extensions.settings.set("buttonLabel", buttonLabel);
       tableau.extensions.settings.set("buttonStyle", buttonStyle);
-      tableau.extensions.settings
-        .saveAsync()
-        .then((savedSettings) => {
-          console.log("[Configure.tsx] Saved settings:", savedSettings);
-          if (close) {
-            tableau.extensions.ui.closeDialog("true");
-          } else {
-            setEnableSave(true);
-          }
-        })
-        .catch((error) => {
-          console.log("[Configure.tsx] Error occurred while saving the settings:", error);
-        });
+      try {
+        const savedSettings = await tableau.extensions.settings.saveAsync();
+        console.log("[Configure.tsx] Saved settings:", savedSettings);
+        if (close) {
+          tableau.extensions.ui.closeDialog("true");
+        } else {
+          setEnableSave(true);
+        }
+      } catch (error) {
+        console.log("[Configure.tsx] Error occurred while saving the settings:", error);
+      }
     }
   }
 
@@ -157,7 +158,7 @@ export default function Configure() {
         }}
         resetLabel="Reset"
         resetHandler={resetSettingsHandler}
-        // cancelLabel="Cancel"
+        cancelLabel="Cancel"
         cancelHandler={cancelSettingsHandler}
       />
     </>

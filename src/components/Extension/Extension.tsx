@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import ExtensionHandler from "./ExtensionHandler";
 import { Spinner } from "@tableau/tableau-ui";
-// import { TableauEventUnregisterFn } from '@tableau/extensions-api-types';
 import { Settings, defaultSettings } from "../../interfaces";
+// import { TableauError } from "@tableau/extensions-api-types";
 
 // Declare this so our linter knows that tableau is a global object
 /* global tableau */
 
-// import "../../public/lib/tableau.extensions.1.latest.min.js?raw";
+// import "../../../public/lib/tableau.extensions.1.latest.min.js?raw";
 
 export default function Extension() {
   const [dashboard, setDashboard] = useState({});
@@ -16,13 +16,10 @@ export default function Extension() {
 
   useEffect(() => {
     console.log("[Extension.tsx] useEffect initialize");
-    tableau.extensions.initializeAsync({ 'configure': configure as () => object }).then(() => {
+    (async () => {
+      await tableau.extensions.initializeAsync({ configure: configure as () => object });
       setDashboard(tableau.extensions.dashboardContent!.dashboard);
       const settings = tableau.extensions.settings.getAll();
-      const unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
-        console.log("[Extension.tsx] SettingsChanged event:", settingsEvent);
-        updateSettingsData(tableau.extensions.settings.getAll());
-      });
       console.log("[Extension.tsx] Register SettingsChanged event handler");
       if (settings === undefined) {
         // console.log(tableau.extensions.environment.mode);
@@ -31,25 +28,22 @@ export default function Extension() {
         // await new Promise(resolve => setTimeout(resolve, 1000));
         updateSettingsData(settings);
       }
-      return () => {
-        console.log("[Extension.tsx] Unregister SettingsChanged event handler");
-        unregisterSettingsEventListener();
-      }
-    });
+    })();
     return () => {
-      console.log("[Extension.tsx] No listener for SettingsChanged event");
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      // Component unmount code
+      console.log("[Extension.tsx] useEffect callback");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function updateSettingsData(rawSettings: {[key: string]: string;}) {
+  function updateSettingsData(rawSettings: { [key: string]: string }) {
     try {
       const settings: Settings = { ...defaultSettings }; // creates a shallow copy
       if ("metaVersion" in rawSettings && parseInt(rawSettings.metaVersion)) {
         console.log("[Extension.tsx] Validating extension settings");
-        settings.metaVersion = parseInt(rawSettings.metaVersion)
-        settings.buttonLabel = rawSettings.buttonLabel
-        settings.buttonStyle = rawSettings.buttonStyle
+        settings.metaVersion = parseInt(rawSettings.metaVersion);
+        settings.buttonLabel = rawSettings.buttonLabel;
+        settings.buttonStyle = rawSettings.buttonStyle;
       }
       setSettings(settings);
       setDoneLoading(true);
@@ -59,43 +53,60 @@ export default function Extension() {
   }
 
   const configure = () => {
-    console.log("[Extension.tsx] Opening configure popup");
-    console.log(`tableauVersion: ${tableau.extensions.environment.tableauVersion}`);
-    console.log(`hostname: ${window.location.hostname}`);
+    console.log("[Extension.tsx] Opening configure popup dialog window");
 
     let popupUrl = "config.html";
     const tableauVersion = tableau.extensions.environment.tableauVersion.split(".");
-    // if tableauVersion < 2019.3 need an absolute URL
+    // if tableauVersion < 2019.3 we need an absolute URL
     if (
       parseInt(tableauVersion[0], 10) === 2018 ||
       (parseInt(tableauVersion[0], 10) === 2019 && parseInt(tableauVersion[1], 10) < 3)
     ) {
       const href = window.location.href;
       popupUrl = window.location.href.substring(0, href.lastIndexOf("/")) + "/config.html";
+      console.log("[Extension.tsx] Changing popup window URL for older versions:", popupUrl);
     }
 
-    tableau.extensions.ui
-      .displayDialogAsync(popupUrl, "", { height: 650, width: 500 })
-      .then((closePayload) => {
-        console.log(`[Extension.tsx] Returning from config window (${closePayload})`);
-        if (closePayload) {
+    (async () => {
+      const unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(
+        tableau.TableauEventType.SettingsChanged,
+        (settingsEvent) => {
+          console.log("[Extension.tsx] SettingsChanged event:", settingsEvent);
+          updateSettingsData(tableau.extensions.settings.getAll());
+        }
+      );
+      try {
+        const payload = await tableau.extensions.ui.displayDialogAsync(popupUrl, "", {
+          height: 650,
+          width: 500,
+        });
+        console.log(`[Extension.tsx] Returning from config window (${payload})`);
+        // if unregisterSettingsEventListener is not empty, the SettingsChanged event will be emitted, so we don't need to update extra
+        if (payload && unregisterSettingsEventListener === undefined) {
+          console.log("[Extension.tsx] Update settings without listener");
           const settings = tableau.extensions.settings.getAll();
           updateSettingsData(settings);
-          setDoneLoading(true);
         } else {
-          console.log("[Extension.tsx] Config dialog was cancelled");
+          //   console.log("[Extension.tsx] Config dialog was cancelled");
         }
-      })
-      .catch((error) => {
-        switch (error.errorCode) {
-          case tableau.ErrorCodes.DialogClosedByUser:
-            console.log("[Extension.tsx] Dialog was closed by user");
-            break;
-          default:
-            console.error("[Extension.tsx]", error.message);
+      } catch (error) {
+        if (typeof error === "object" && error !== null && "errorCode" in error) {
+          switch (error.errorCode) {
+            case tableau.ErrorCodes.DialogClosedByUser:
+              console.log("[Extension.tsx] Dialog window was closed by the user");
+              break;
+            default:
+              console.error("[Extension.tsx]", error);
+          }
         }
-      });
-  }
+      } finally {
+        // if (unregisterSettingsEventListener) {
+        console.log("[Extension.tsx] Unregister SettingsChanged event handler");
+        unregisterSettingsEventListener();
+        // }
+      }
+    })();
+  };
 
   return (
     <>
