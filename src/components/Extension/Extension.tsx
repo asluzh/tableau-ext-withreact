@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import ExtensionHandler from "./ExtensionHandler";
 import { Spinner } from "@tableau/tableau-ui";
-import { Settings, defaultSettings } from "../../interfaces";
 // import { TableauError } from "@tableau/extensions-api-types";
+import { Settings, defaultSettings } from "../../interfaces";
+import "./Extension.css";
 
 // Declare this so our linter knows that tableau is a global object
 /* global tableau */
@@ -25,7 +26,7 @@ export default function Extension() {
         // console.log(tableau.extensions.environment.mode);
         configure();
       } else {
-        // await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // add delay to showcase spinner
         updateSettingsData(settings);
       }
     })();
@@ -81,13 +82,12 @@ export default function Extension() {
           width: 500,
         });
         console.log(`[Extension.tsx] Returning from config window (${payload})`);
-        // if unregisterSettingsEventListener is not empty, the SettingsChanged event will be emitted, so we don't need to update extra
+        // in normal case, the SettingsChanged event will be emitted, so we don't need to update extra
         if (payload && unregisterSettingsEventListener === undefined) {
+          // unregisterSettingsEventListener cannot be empty, but we'll handle it anyway
           console.log("[Extension.tsx] Update settings without listener");
           const settings = tableau.extensions.settings.getAll();
           updateSettingsData(settings);
-        } else {
-          //   console.log("[Extension.tsx] Config dialog was cancelled");
         }
       } catch (error) {
         if (typeof error === "object" && error !== null && "errorCode" in error) {
@@ -100,10 +100,11 @@ export default function Extension() {
           }
         }
       } finally {
-        // if (unregisterSettingsEventListener) {
         console.log("[Extension.tsx] Unregister SettingsChanged event handler");
-        unregisterSettingsEventListener();
-        // }
+        if (unregisterSettingsEventListener) {
+          // cannot be empty in normal case
+          unregisterSettingsEventListener();
+        }
       }
     })();
   };
@@ -113,8 +114,7 @@ export default function Extension() {
       {!doneLoading && (
         <div aria-busy="true" className="overlay">
           <div className="centerOnPage">
-            <div className="spinnerBg centerOnPage">{}</div>
-            <Spinner color="light" />
+            <Spinner color="dark" />
           </div>
         </div>
       )}
