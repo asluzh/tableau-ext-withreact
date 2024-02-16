@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ExtensionHandler from "./ExtensionHandler";
 import { Spinner } from "@tableau/tableau-ui";
-// import * as t from '@tableau/extensions-api-types';
+// import { TableauEventUnregisterFn } from '@tableau/extensions-api-types';
 import { Settings, defaultSettings } from "../../interfaces";
 
 // Declare this so our linter knows that tableau is a global object
@@ -15,20 +15,31 @@ export default function Extension() {
   const [settings, setSettings] = useState({});
 
   useEffect(() => {
-    console.log("[Extension.tsx] useEffect");
+    console.log("[Extension.tsx] useEffect initialize");
     tableau.extensions.initializeAsync({ 'configure': configure as () => object }).then(() => {
       setDashboard(tableau.extensions.dashboardContent!.dashboard);
       const settings = tableau.extensions.settings.getAll();
-      if (typeof settings === "undefined") {
+      const unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
+        console.log("[Extension.tsx] SettingsChanged event:", settingsEvent);
+        updateSettingsData(tableau.extensions.settings.getAll());
+      });
+      console.log("[Extension.tsx] Register SettingsChanged event handler");
+      if (settings === undefined) {
         // console.log(tableau.extensions.environment.mode);
         configure();
       } else {
-        updateSettingsData(settings);
         // await new Promise(resolve => setTimeout(resolve, 1000));
-        setDoneLoading(true);
+        updateSettingsData(settings);
+      }
+      return () => {
+        console.log("[Extension.tsx] Unregister SettingsChanged event handler");
+        unregisterSettingsEventListener();
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      console.log("[Extension.tsx] No listener for SettingsChanged event");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function updateSettingsData(rawSettings: {[key: string]: string;}) {
@@ -41,6 +52,7 @@ export default function Extension() {
         settings.buttonStyle = rawSettings.buttonStyle
       }
       setSettings(settings);
+      setDoneLoading(true);
     } catch (e) {
       console.error("Error updating settings:", e);
     }
