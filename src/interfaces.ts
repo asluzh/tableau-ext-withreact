@@ -1,3 +1,9 @@
+export enum ExtensionState {
+  Init,
+  Config,
+  Ready
+}
+
 export interface Settings {
   metaVersion?: number;
   buttonLabel: string;
