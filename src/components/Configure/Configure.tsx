@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Tabs, TextField, DropdownSelect } from "@tableau/tableau-ui";
 import Grid from "@mui/material/Grid";
-import ActionButtons from "./DialogButtons";
-import { defaultSettings } from "../../interfaces";
+import ActionButtons from "./DialogButtons.tsx";
+import { defaultSettings } from "../../settings.ts";
 // import { makeStyles } from "@material-ui/core/styles";
 // import { saveSettings, setSettings, initializeMeta, revalidateMeta } from '../func/func';
 // import './Configure.css';
