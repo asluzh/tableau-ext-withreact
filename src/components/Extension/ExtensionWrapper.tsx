@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Extension from "./Extension.tsx";
-import { Spinner, Button } from "@tableau/tableau-ui";
+import { Spinner, Button, Sticker } from "@tableau/tableau-ui";
 // import { TableauError } from "@tableau/extensions-api-types";
 import { Settings, defaultSettings } from "../../settings.ts";
 import "./Extension.css";
@@ -22,13 +22,13 @@ export default function ExtensionWrapper() {
   const [settings, setSettings] = useState({});
 
   useEffect(() => {
-    console.log("[ExtensionWrapper.tsx] useEffect initialize");
+    import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] useEffect initialize");
     (async () => {
       await tableau.extensions.initializeAsync({ configure: configure as () => object });
       setDashboard(tableau.extensions.dashboardContent!.dashboard);
       const settings = tableau.extensions.settings.getAll();
       if (Object.keys(settings).length > 0) {
-        console.log("[ExtensionWrapper.tsx] Existing settings found:", settings);
+        import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Existing settings found:", settings);
         await new Promise((resolve) => setTimeout(resolve, 1000)); // add delay to showcase spinner
         updateSettingsData(settings);
       } else {
@@ -38,7 +38,7 @@ export default function ExtensionWrapper() {
     })();
     return () => {
       // Component unmount code
-      console.log("[ExtensionWrapper.tsx] useEffect callback");
+      import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] useEffect callback");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -46,7 +46,7 @@ export default function ExtensionWrapper() {
   function updateSettingsData(rawSettings: { [key: string]: string }) {
     try {
       const settings: Settings = { ...defaultSettings }; // creates a shallow copy
-      console.log("[ExtensionWrapper.tsx] Validating extension settings");
+      import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Validating extension settings");
       if ("metaVersion" in rawSettings && parseInt(rawSettings.metaVersion)) {
         settings.metaVersion = parseInt(rawSettings.metaVersion);
         settings.buttonLabel = rawSettings.buttonLabel;
@@ -60,7 +60,7 @@ export default function ExtensionWrapper() {
   }
 
   const configure = () => {
-    console.log("[ExtensionWrapper.tsx] Opening configure popup dialog window");
+    import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Opening configure popup dialog window");
 
     let popupUrl = "config.html";
     const tableauVersion = tableau.extensions.environment.tableauVersion.split(".");
@@ -71,14 +71,14 @@ export default function ExtensionWrapper() {
     ) {
       const href = window.location.href;
       popupUrl = window.location.href.substring(0, href.lastIndexOf("/")) + "/config.html";
-      console.log("[ExtensionWrapper.tsx] Changing popup window URL for older versions:", popupUrl);
+      import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Changing popup window URL for older versions:", popupUrl);
     }
 
     (async () => {
       const unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(
         tableau.TableauEventType.SettingsChanged,
         (settingsEvent) => {
-          console.log("[ExtensionWrapper.tsx] SettingsChanged event:", settingsEvent);
+          import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] SettingsChanged event:", settingsEvent);
           updateSettingsData(tableau.extensions.settings.getAll());
         }
       );
@@ -87,11 +87,11 @@ export default function ExtensionWrapper() {
           height: 650,
           width: 500,
         });
-        console.log(`[ExtensionWrapper.tsx] Returning from config window (${payload})`);
+        import.meta.env.DEV && console.log(`[ExtensionWrapper.tsx] Returning from config window (${payload})`);
         // in normal case, the SettingsChanged event will be emitted, so we don't need to update extra
         if (payload && unregisterSettingsEventListener === undefined) {
           // unregisterSettingsEventListener cannot be empty, but we'll handle it anyway
-          console.log("[ExtensionWrapper.tsx] Update settings without listener");
+          import.meta.env.DEV && console.warn("[ExtensionWrapper.tsx] Update settings without listener");
           const settings = tableau.extensions.settings.getAll();
           updateSettingsData(settings);
         }
@@ -99,14 +99,14 @@ export default function ExtensionWrapper() {
         if (typeof error === "object" && error !== null && "errorCode" in error) {
           switch (error.errorCode) {
             case tableau.ErrorCodes.DialogClosedByUser:
-              console.log("[ExtensionWrapper.tsx] Dialog window was closed by the user");
+              import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Dialog window was closed by the user");
               break;
             default:
               console.error("[ExtensionWrapper.tsx]", error);
           }
         }
       } finally {
-        console.log("[ExtensionWrapper.tsx] Unregister SettingsChanged event handler");
+        import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Unregister SettingsChanged event handler");
         if (unregisterSettingsEventListener) {
           // cannot be empty in normal case
           unregisterSettingsEventListener();
@@ -124,11 +124,16 @@ export default function ExtensionWrapper() {
           </div>
         </div>
       )}
-      {ready === ExtensionState.Config && (
+      {ready === ExtensionState.Config && tableau.extensions.environment.mode === "authoring" && (
         <div className="centerOnPage">
           <Button kind="outline" onClick={configure}>
             Configure Extension
           </Button>
+        </div>
+      )}
+      {ready === ExtensionState.Config && tableau.extensions.environment.mode === "viewing" && (
+        <div className="centerOnPage">
+          <Sticker stickerType="yellow">This extension needs configuring</Sticker>
         </div>
       )}
       {ready === ExtensionState.Ready && (

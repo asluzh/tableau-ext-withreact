@@ -19,14 +19,14 @@ export default function Configure() {
 
   useEffect(() => {
     (async () => {
-      console.log("[Configure.tsx] useEffect initialize dialog");
+      import.meta.env.DEV && console.log("[Configure.tsx] useEffect initialize dialog");
       const payload = await tableau.extensions.initializeDialogAsync();
-      console.log("[Configure.tsx] Initialise Dialog", payload);
+      import.meta.env.DEV && console.log("[Configure.tsx] Initialize dialog payload:", payload);
 
       const labelSettings = tableau.extensions.settings.get("buttonLabel");
       if (labelSettings !== undefined) {
         // labelSettings = labelSettings.replace(/"/g, "");
-        console.log(
+        import.meta.env.DEV && console.log(
           "[Configure.tsx] initializeDialogAsync Existing Label Settings Found:",
           labelSettings
         );
@@ -35,7 +35,7 @@ export default function Configure() {
 
       const styleSettings = tableau.extensions.settings.get("buttonStyle");
       if (styleSettings) {
-        console.log(
+        import.meta.env.DEV && console.log(
           "[Configure.tsx] initializeDialogAsync Existing Label Style Found:",
           styleSettings
         );
@@ -44,14 +44,14 @@ export default function Configure() {
     })();
     return () => {
       // Component unmount code
-      console.log("[Configure.tsx] useEffect callback");
+      import.meta.env.DEV && console.log("[Configure.tsx] useEffect callback");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function saveSettingsHandler(close: boolean) {
-    console.log("[Configure.tsx] saveSettingsHandler");
-    console.log("[Configure.tsx] Authoring mode:", tableau.extensions.environment.mode);
+    import.meta.env.DEV && console.log("[Configure.tsx] saveSettingsHandler");
+    import.meta.env.DEV && console.log("[Configure.tsx] Extension environment mode:", tableau.extensions.environment.mode);
     if (tableau.extensions.environment.mode === "authoring") {
       setEnableSave(false);
       tableau.extensions.settings.set("metaVersion", defaultSettings.metaVersion!.toString());
@@ -59,26 +59,26 @@ export default function Configure() {
       tableau.extensions.settings.set("buttonStyle", buttonStyle);
       try {
         const savedSettings = await tableau.extensions.settings.saveAsync();
-        console.log("[Configure.tsx] Saved settings:", savedSettings);
+        import.meta.env.DEV && console.log("[Configure.tsx] Saved settings:", savedSettings);
         if (close) {
           tableau.extensions.ui.closeDialog("true");
         } else {
           setEnableSave(true);
         }
       } catch (error) {
-        console.log("[Configure.tsx] Error occurred while saving the settings:", error);
+        console.error("[Configure.tsx] Error occurred while saving the settings:", error);
       }
     }
   }
 
   function resetSettingsHandler() {
-    console.log("[Configure.tsx] resetSettingsHandler");
+    import.meta.env.DEV && console.log("[Configure.tsx] resetSettingsHandler");
     setButtonLabel(defaultSettings.buttonLabel);
     setButtonStyle(defaultSettings.buttonStyle);
   }
 
   function cancelSettingsHandler() {
-    console.log("[Configure.tsx] cancelSettingsHandler");
+    import.meta.env.DEV && console.log("[Configure.tsx] cancelSettingsHandler");
     tableau.extensions.ui.closeDialog();
   }
 
@@ -105,18 +105,14 @@ export default function Configure() {
                 {/* className={classes.root} */}
                 <Grid item xs={12}>
                   <TextField
-                    label="Button Label"
-                    placeholder="Button Label"
+                    label='Button Label'
+                    placeholder='Button Label'
                     style={{ width: 400 }}
                     value={buttonLabel}
                     onChange={(e) => {
-                      console.log("[ConfigureTab.tsx] Updating Button Label", e.target.value);
+                      import.meta.env.DEV && console.log("[ConfigureTab.tsx] Updating Button Label", e.target.value);
                       setButtonLabel(e.target.value);
                     }}
-                    // onClear={() => {
-                    //   console.log("[ConfigureTab.tsx] Clear Button Label");
-                    //   setButtonLabel(defaultSettings.buttonLabel);
-                    // }}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -124,10 +120,10 @@ export default function Configure() {
                   <>
                     Set Button Style to:
                     <DropdownSelect
-                      kind="line"
+                      kind='line'
                       value={buttonStyle}
                       onChange={(e) => {
-                        console.log("[ConfigureTab.tsx] Updating Button Style", e.target.value);
+                        import.meta.env.DEV && console.log("[ConfigureTab.tsx] Updating Button Style", e.target.value);
                         setButtonStyle(e.target.value);
                       }}
                       style={{
@@ -148,17 +144,17 @@ export default function Configure() {
       </Tabs>
       <ActionButtons
         enableSave={enableSave}
-        saveCloseLabel="Save & Close"
+        saveCloseLabel='Save & Close'
         saveCloseHandler={() => {
           saveSettingsHandler(true);
         }}
-        saveLabel="Apply"
+        saveLabel='Apply'
         saveHandler={() => {
           saveSettingsHandler(false);
         }}
-        resetLabel="Reset"
+        resetLabel='Reset'
         resetHandler={resetSettingsHandler}
-        cancelLabel="Cancel"
+        cancelLabel='Cancel'
         cancelHandler={cancelSettingsHandler}
       />
     </>
