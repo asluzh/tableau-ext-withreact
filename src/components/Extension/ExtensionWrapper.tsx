@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import Extension from "./Extension.tsx";
 import { Spinner, Button, Sticker } from "@tableau/tableau-ui";
 // import { TableauError } from "@tableau/extensions-api-types";
-import { Settings, defaultSettings } from "../../settings.ts";
+import { Settings, parseSettings } from "../../settings.ts";
 import "./Extension.css";
+import { Dashboard } from "@tableau/extensions-api-types";
 
 /* Declare this so our linter knows that tableau is a global object
 global tableau
@@ -17,20 +18,20 @@ enum ExtensionState {
 }
 
 export default function ExtensionWrapper() {
-  const [dashboard, setDashboard] = useState({});
+  const [dashboard, setDashboard] = useState<Dashboard|null>();
   const [ready, setReady] = useState<ExtensionState>(ExtensionState.Init);
-  const [settings, setSettings] = useState({});
+  const [settings, setSettings] = useState<Settings|null>();
 
   useEffect(() => {
     import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] useEffect initialize");
     (async () => {
       await tableau.extensions.initializeAsync({ configure: configure as () => object });
       setDashboard(tableau.extensions.dashboardContent!.dashboard);
-      const settings = tableau.extensions.settings.getAll();
-      if (Object.keys(settings).length > 0) {
-        import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Existing settings found:", settings);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // add delay to showcase spinner
-        updateSettingsData(settings);
+      const allSettings = tableau.extensions.settings.getAll();
+      if (Object.keys(allSettings).length > 0) {
+        import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Applying existing settings");
+        // await new Promise((resolve) => setTimeout(resolve, 1000)); // add delay to showcase spinner
+        updateSettingsData(allSettings);
       } else {
         // cannot call configure() directly because browser will block a popup
         setReady(ExtensionState.Config);
@@ -45,13 +46,9 @@ export default function ExtensionWrapper() {
 
   function updateSettingsData(rawSettings: { [key: string]: string }) {
     try {
-      const settings: Settings = { ...defaultSettings }; // creates a shallow copy
-      import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Validating extension settings");
+      import.meta.env.DEV && console.trace("[ExtensionWrapper.tsx] Validating extension settings");
       if ("metaVersion" in rawSettings && parseInt(rawSettings.metaVersion)) {
-        settings.metaVersion = parseInt(rawSettings.metaVersion);
-        settings.buttonLabel = rawSettings.buttonLabel;
-        settings.buttonStyle = rawSettings.buttonStyle;
-        setSettings(settings);
+        setSettings(parseSettings(rawSettings));
         setReady(ExtensionState.Ready);
       }
     } catch (e) {
@@ -71,7 +68,7 @@ export default function ExtensionWrapper() {
     ) {
       const href = window.location.href;
       popupUrl = window.location.href.substring(0, href.lastIndexOf("/")) + "/config.html";
-      import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Changing popup window URL for older versions:", popupUrl);
+      import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] Dialog window URL for older versions:", popupUrl);
     }
 
     (async () => {
@@ -91,9 +88,8 @@ export default function ExtensionWrapper() {
         // in normal case, the SettingsChanged event will be emitted, so we don't need to update extra
         if (payload && unregisterSettingsEventListener === undefined) {
           // unregisterSettingsEventListener cannot be empty, but we'll handle it anyway
-          import.meta.env.DEV && console.warn("[ExtensionWrapper.tsx] Update settings without listener");
-          const settings = tableau.extensions.settings.getAll();
-          updateSettingsData(settings);
+          import.meta.env.DEV && console.warn("[ExtensionWrapper.tsx] Update settings without unregisterSettingsEventListener");
+          updateSettingsData(tableau.extensions.settings.getAll());
         }
       } catch (error) {
         if (typeof error === "object" && error !== null && "errorCode" in error) {

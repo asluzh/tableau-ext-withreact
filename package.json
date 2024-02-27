@@ -2,7 +2,7 @@
   "homepage": "https://asluzh.github.io/tableau-ext-withreact/",
   "name": "tableau-ext-withreact",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "predeploy": "npm run build",
