@@ -8,6 +8,9 @@ import {
   Radio,
   ToggleSwitch,
   TextArea,
+  Pill,
+  Sticker,
+  TextLink,
 } from "@tableau/tableau-ui";
 import Grid from "@mui/material/Grid";
 import DialogButtons from "./DialogButtons.tsx";
@@ -22,10 +25,10 @@ import { Dashboard } from "@tableau/extensions-api-types";
 /* global tableau */
 
 export default function Configure() {
-  const [dashboard, setDashboard] = useState<Dashboard|null>();
+  const [dashboard, setDashboard] = useState<Dashboard | null>();
   const [tab, switchTab] = useState(0);
   const [enableSave, setEnableSave] = useState(true);
-  const [settings, setSettings] = useState<Partial<Settings>|null>();
+  const [settings, setSettings] = useState<Partial<Settings> | null>();
 
   useEffect(() => {
     (async () => {
@@ -127,7 +130,10 @@ export default function Configure() {
                     value={settings?.worksheet}
                     onChange={(e) => {
                       import.meta.env.DEV &&
-                        console.log("[ConfigureTab.tsx] Updating Selected Worksheet", e.target.value);
+                        console.log(
+                          "[ConfigureTab.tsx] Updating Selected Worksheet",
+                          e.target.value
+                        );
                       setSettings((prev) => ({ ...prev, worksheet: e.target.value }));
                     }}
                     style={{
@@ -136,7 +142,7 @@ export default function Configure() {
                   >
                     <option label=''> -- Please select -- </option>
                     {dashboard?.worksheets.map((ws) => {
-                      return (<option label={ws.name}>{ws.name}</option>)
+                      return <option label={ws.name}>{ws.name}</option>;
                     })}
                   </DropdownSelect>
                 </Grid>
@@ -319,19 +325,51 @@ export default function Configure() {
           )}
           {tab === 3 && (
             <div>
-              <h4>ABOUT THIS EXTENSION</h4>
-              <p>This is a sample extension using React + Typescript.</p>
-              <div
-                style={{
-                  left: 10,
-                  bottom: 10,
-                  // position: 'fixed',
-                  color: "#4f4f4f",
-                  fontSize: 12,
-                }}
-              >
-                v{packageJson.version}
-              </div>
+              <Grid container>
+                <Grid item xs={12}>
+                  <h4>ABOUT THIS EXTENSION</h4>
+                  <p>This is a sample extension using React + Typescript.</p>
+                  <div
+                    style={{
+                      left: 10,
+                      bottom: 10,
+                      // position: 'fixed',
+                      color: "#4f4f4f",
+                      fontSize: 12,
+                    }}
+                  >
+                    v{packageJson.version}
+                  </div>
+                </Grid>
+                <Grid item xs={12}>
+                  <Pill kind='discrete' style={{ width: 100 }}>
+                    Discrete
+                  </Pill>
+                  <Pill kind='continuous' style={{ width: 100 }}>
+                    Continuous
+                  </Pill>
+                  <Pill kind='invalid' style={{ width: 100 }}>
+                    Invalid
+                  </Pill>
+                  <Pill kind='other' style={{ width: 100 }}>
+                    Other
+                  </Pill>
+                </Grid>
+                <Grid item xs={12}>
+                  <Sticker stickerType='blue'>Blue</Sticker>
+                  <Sticker stickerType='green'>Green</Sticker>
+                  <Sticker stickerType='neutral'>Neutral</Sticker>
+                  <Sticker stickerType='red'>Red</Sticker>
+                  <Sticker stickerType='yellow'>Yellow</Sticker>
+                  <Sticker stickerType='teal'>Teal</Sticker>
+                  <Sticker stickerType='violet'>Violet</Sticker>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextLink kind='standalone' target='_blank' href='{packageJson.homepage}' style={{fontSize: 12}}>
+                    Github Repo Link
+                  </TextLink>
+                </Grid>
+              </Grid>
             </div>
           )}
         </div>

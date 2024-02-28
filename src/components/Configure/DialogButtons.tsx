@@ -5,9 +5,9 @@ export default function DialogButtons(props) {
     <div>
       <div
         style={{
-          bottom: 10,
-          right: 10,
-          // position: 'fixed'
+          bottom: 20,
+          right: 20,
+          position: 'fixed'
         }}
       >
         {props.resetLabel && (
@@ -33,7 +33,6 @@ export default function DialogButtons(props) {
         {props.saveCloseLabel && (
           <Button
             kind={"primary"}
-            style={{ marginRight: 12 }}
             disabled={!props.enableSave}
             onClick={props.saveCloseHandler}
           >
