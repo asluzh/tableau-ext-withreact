@@ -25,10 +25,10 @@ import { Dashboard } from "@tableau/extensions-api-types";
 /* global tableau */
 
 export default function Configure() {
-  const [dashboard, setDashboard] = useState<Dashboard | null>();
+  const [dashboard, setDashboard] = useState<Dashboard>();
   const [tab, switchTab] = useState(0);
   const [enableSave, setEnableSave] = useState(true);
-  const [settings, setSettings] = useState<Partial<Settings> | null>();
+  const [settings, setSettings] = useState<Partial<Settings>>();
 
   useEffect(() => {
     (async () => {

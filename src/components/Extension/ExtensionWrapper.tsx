@@ -18,9 +18,9 @@ enum ExtensionState {
 }
 
 export default function ExtensionWrapper() {
-  const [dashboard, setDashboard] = useState<Dashboard|null>();
+  const [dashboard, setDashboard] = useState<Dashboard>();
   const [ready, setReady] = useState<ExtensionState>(ExtensionState.Init);
-  const [settings, setSettings] = useState<Settings|null>();
+  const [settings, setSettings] = useState<Settings>();
 
   useEffect(() => {
     import.meta.env.DEV && console.log("[ExtensionWrapper.tsx] useEffect initialize");
