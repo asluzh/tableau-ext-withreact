@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Spinner, Button, Sticker } from '@tableau/tableau-ui'
-import { loadConfig, defaultConfig, saveConfig } from './utils/settings.js'
+import { loadConfig } from './utils/settings.js'
 import logger from './utils/logger.js'
 import packageJson from '../package.json'
 import './Extension.css'
@@ -30,8 +30,8 @@ function configure() {
 
 export default function Extension() {
   const ref = useRef(null);
-  const [dashboard, setDashboard] = useState();
   const [ready, setReady] = useState(0);
+  const [config, setConfig] = useState({});
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -112,18 +112,22 @@ export default function Extension() {
         unregisterDataChangedListener();
         unregisterDataChangedListener = null;
       }
-      const config = loadConfig();
-      listenerDataChanged = config.listenerDataChanged; // save a copy in the closure variable
-      // ref.current.style = config.mainDivStyle;
-      if (config.sheet) {
+      const cfg = loadConfig();
+      setConfig(cfg);
+      if (cfg.sheet) { // existing settings found
+        listenerDataChanged = cfg.listenerDataChanged; // save a copy in the closure variable
+        ref.current.style = cfg.mainDivStyle;
         const worksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-        const worksheet = worksheets.find(s => s.name === config.sheet);
+        const worksheet = worksheets.find(s => s.name === cfg.sheet);
         if (!worksheet) {
-          logger.warn('Worksheet not found:', config.sheet);
+          logger.warn('Worksheet not found:', cfg.sheet);
           setData([]);
           return;
         }
         updateData(worksheet);
+        setReady(2); // extension ready to display
+      } else {
+        setReady(1); // show config button
       }
     };
 
@@ -141,7 +145,7 @@ export default function Extension() {
     logger.log('Running', packageJson.name, packageJson.version);
     return () => {
       cancel = true;
-      logger.debug('useEffect unmount');
+      logger.debug('useEffect callback');
       if (unregisterSettingsChangedListener) {
         unregisterSettingsChangedListener();
         unregisterSettingsChangedListener = null;
@@ -164,6 +168,37 @@ export default function Extension() {
   }, [data]);
 
   return (
-    <div ref={ref} />
+    <div ref={ref}>
+      {ready === 0 && (
+        <div aria-busy="true" className="overlay">
+          <div className="centerOnPage">
+            <Spinner color="dark" />
+          </div>
+        </div>
+      )}
+      {ready === 1 && tableau.extensions.environment.mode === "authoring" && (
+        <div className="centerOnPage">
+          <Button kind="outline" onClick={configure}>
+            Configure Extension
+          </Button>
+        </div>
+      )}
+      {ready === 1 && tableau.extensions.environment.mode === "viewing" && (
+        <div className="centerOnPage">
+          <Sticker stickerType="yellow">This extension needs configuring</Sticker>
+        </div>
+      )}
+      {ready === 2 && (
+        <div className="centerOnPage">
+          <Button
+            kind={"config.buttonStyle"}
+            disabled={false}
+            onClick={() => { console.log("Button clicked"); }}
+          >
+            {"config.buttonLabel"}
+          </Button>
+        </div>
+      )}
+    </div>
   )
 }

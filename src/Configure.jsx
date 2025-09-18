@@ -14,7 +14,7 @@ import {
   TextLink,
 } from "@tableau/tableau-ui"
 import Grid from "@mui/material/Grid"
-import { loadConfig, defaultConfig, saveConfig } from './utils/settings.js'
+import { loadConfig, saveConfig, defaultConfig } from './utils/settings.js'
 import logger from './utils/logger.js'
 import packageJson from '../package.json'
 import './Configure.css'
@@ -41,7 +41,7 @@ export default function Configure() {
       setConfig(loadConfig());
     });
     return () => {
-      logger.debug('useEffect unmount');
+      logger.debug('useEffect callback');
     }
   }, []);
 
@@ -91,11 +91,12 @@ export default function Configure() {
         tabs={[
           { content: "Data" },
           { content: "Options" },
-          { content: "Style" },
+          { content: "Styling" },
           { content: "About" },
         ]}
       >
         <div className='configForm'>
+
         {tabIndex === 0 && (
           <Grid container>
             <Grid item xs={12}>
@@ -127,6 +128,7 @@ export default function Configure() {
             </Grid>
           </Grid>
         )}
+
         {tabIndex === 1 && (
           <Grid container>
             <Grid item xs={12}>
@@ -134,17 +136,37 @@ export default function Configure() {
                 style={{ width: '530px', height: '50px', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}
                 spellCheck={false}
                 wrap='off'
-                label="Text Area Example"
+                label="Text Area"
                 value={config.textArea}
                 placeholder="Enter text"
                 onChange={e => {
-                  logger.debug("Change text area", e.target.value);
+                  logger.debug("Set textArea", e.target.value);
                   setConfig((prev) => ({ ...prev, textArea: e.target.value }));
                 }}
               />
             </Grid>
           </Grid>
         )}
+
+        {tabIndex === 2 && (
+          <Grid container>
+            <Grid item xs={12}>
+              <TextArea
+                style={{ width: '530px', height: '50px', whiteSpace: 'pre', fontFamily: 'monospace' }}
+                spellCheck={false}
+                wrap='off'
+                label="Main Div Style (CSS)"
+                value={config.mainDivStyle}
+                placeholder="CSS-style for main DIV element"
+                onChange={e => {
+                  logger.debug("Set mainDivStyle", e.target.value);
+                  setConfig((prev) => ({ ...prev, mainDivStyle: e.target.value }));
+                }}
+              />
+            </Grid>
+          </Grid>
+        )}
+
         </div>
       </Tabs>
       <div

@@ -5,6 +5,7 @@ const DEFAULT_CONFIG = {
   sheet: "",
   listenerDataChanged: "",
   textArea: "",
+  mainDivStyle: 'width: 100vw; height: 100vh;',
 }
 
 export function loadConfig() {
@@ -49,6 +50,13 @@ export async function saveConfig(config) {
     Object.entries(config).forEach(([key, value]) => {
       logger.debug("Setting", key, "=", config[key]);
       tableau.extensions.settings.set(key, value);
+    });
+    const existingSettings = tableau.extensions.settings.getAll();
+    Object.keys(existingSettings).forEach((key) => {
+      if (key !== "metaVersion" && !(key in config)) {
+        logger.debug(`Erasing "${key}" in extension settings`);
+        tableau.extensions.settings.erase(key);
+      }
     });
     tableau.extensions.settings.saveAsync().then(resolve, reject);
   });
