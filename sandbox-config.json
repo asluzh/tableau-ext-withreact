@@ -1,8 +1,0 @@
-{
-    "port": 8765,
-    "extensions": {
-        "tableau-ext-withreact": {
-            "path": "./sandboxed"
-        }
-    }
-}
