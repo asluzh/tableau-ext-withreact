@@ -133,7 +133,9 @@ export default function Extension() {
 
     logger.debug('useEffect');
     tableau.extensions.initializeAsync({'configure': configure}).then(() => {
-      logger.debug('initializeAsync completed, Tableau environment:', tableau.extensions.environment.tableauVersion);
+      logger.debug('initializeAsync completed, API version:', tableau.extensions.environment.apiVersion);
+      logger.debug('Tableau environment:', tableau.extensions.environment.context, tableau.extensions.environment.tableauVersion);
+      logger.debug('Tableau extension object ID:', tableau.extensions.dashboardObjectId);
       updateSettings();
       unregisterSettingsChangedListener = tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (e) => {
         logger.debug('Settings changed:', e);
@@ -162,17 +164,27 @@ export default function Extension() {
 
   useEffect(() => {
     logger.debug('useEffect data update');
-    if (data) {
-      logger.debug('Data rows', data.length);
+    if (data && ready === 2) {
+      logger.debug('Data rows:', data.length);
+      // ... do some data update logic here
     }
-  }, [data]);
+  }, [data, ready]);
 
+  useEffect(() => {
+    logger.debug('useEffect config update');
+    if (config && config.length > 0 && ready === 2) {
+      logger.debug('Config update:', config);
+      // ... do some dependent logic here
+    }
+  }, [config, ready]);
+
+  // TODO spinner not showing
   return (
     <div ref={ref}>
       {ready === 0 && (
-        <div aria-busy="true" className="overlay">
+        <div aria-busy="true">
           <div className="centerOnPage">
-            <Spinner color="dark" />
+            <Spinner color='dark' alt='Loading...' dimension='50px' />
           </div>
         </div>
       )}
