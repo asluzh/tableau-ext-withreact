@@ -1,5 +1,7 @@
-html, body {
+body {
   margin: 0;
+  font-family: "Benton Sans", Helvetica, Arial, sans-serif;
+  font-size: 12px;
 }
 
 .centerOnPage {
